@@ -152,12 +152,20 @@ namespace Yandex.Music.Api.Common.Ynison
             await socketClient.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
         }
 
-
+#if NETSTANDARD2_0
+        public Task Send(string json)
+        {
+            ReadOnlyMemory<byte> message = new(Encoding.UTF8.GetBytes(json));
+            ArraySegment<byte> arr = new ArraySegment<byte>(message.ToArray());
+            return socketClient.SendAsync(arr, WebSocketMessageType.Text, false, CancellationToken.None);
+        }
+#else
         public ValueTask Send(string json)
         {
             ReadOnlyMemory<byte> message = new(Encoding.UTF8.GetBytes(json));
             return socketClient.SendAsync(message, WebSocketMessageType.Text, false, CancellationToken.None);
         }
+#endif
 
         public Task StopReceive()
         {
